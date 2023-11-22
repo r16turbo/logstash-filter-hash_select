@@ -1,42 +1,37 @@
 # encoding: utf-8
 require "logstash/filters/base"
+require "set"
 
-# This hash_select filter will replace the contents of the default
-# message field with whatever you specify in the configuration.
-#
-# It is only intended to be used as an hash_select.
 class LogStash::Filters::Hash_select < LogStash::Filters::Base
-
-  # Setting the config_name here is required. This is how you
-  # configure this filter from your Logstash config.
-  #
-  # filter {
-  #   hash_select {
-  #     message => "My message..."
-  #   }
-  # }
-  #
   config_name "hash_select"
 
-  # Replace the message with this value.
-  config :message, :validate => :string, :default => "Hello World!"
+  config :hash_field, :validate => :string, :required => true
 
+  config :include_keys, :validate => :string, :list => true, :default => []
+  config :exclude_keys, :validate => :string, :list => true, :default => []
 
   public
   def register
-    # Add instance variables
+    # Use faster include method
+    @include_keys = Set[*@include_keys]
+    @exclude_keys = Set[*@exclude_keys]
   end # def register
 
   public
   def filter(event)
-
-    if @message
-      # Replace the event message with our message as configured in the
-      # config file.
-      event.set("message", @message)
+    field = event.get(@hash_field)
+    if field.is_a?(Hash)
+      before = field.size
+      unless @include_keys.empty?
+        field = field.select { |k,v| @include_keys.include?(k) }
+      end
+      unless @exclude_keys.empty?
+        field = field.select { |k,v| ! @exclude_keys.include?(k) }
+      end
+      event.set(@hash_field, field) if field.size < before
     end
 
-    # filter_matched should go in the last line of our successful code
     filter_matched(event)
   end # def filter
+
 end # class LogStash::Filters::Hash_select

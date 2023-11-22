@@ -2,7 +2,7 @@ Gem::Specification.new do |s|
   s.name          = 'logstash-filter-hash_select'
   s.version       = '0.1.0'
   s.licenses      = ['Apache-2.0']
-  s.summary       = 'Logstash Filter Plugin for Hash_select'
+  s.summary       = 'Select entries from a specific hash field'
   s.description   = 'This gem is a Logstash plugin required to be installed on top of the Logstash core pipeline using $LS_HOME/bin/logstash-plugin install gemname. This gem is not a stand-alone program'
   s.homepage      = 'https://github.com/r16turbo/logstash-output-influxdb2'
   s.authors       = ['Issey Yamakoshi']
