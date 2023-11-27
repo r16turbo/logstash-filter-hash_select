@@ -20,14 +20,15 @@ class LogStash::Filters::Hash_select < LogStash::Filters::Base
   public
   def filter(event)
     field = event.get(@hash_field)
-    if field.is_a?(Hash)
-      before = field.size
-      unless @include_keys.empty?
-        field = field.select { |k,v| @include_keys.include?(k) }
-      end
-      unless @exclude_keys.empty?
-        field = field.select { |k,v| ! @exclude_keys.include?(k) }
-      end
+    if field.is_a?(Hash) && (before = field.size).positive?
+      field =
+        if @include_keys.empty?
+          field.reject { |k, _| @exclude_keys.include?(k) } unless @exclude_keys.empty?
+        elsif @exclude_keys.empty?
+          field.select { |k, _| @include_keys.include?(k) }
+        else
+          field.select { |k, _| @include_keys.include?(k) && !@exclude_keys.include?(k) }
+        end
       event.set(@hash_field, field) if field.size < before
     end
 
